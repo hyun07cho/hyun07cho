@@ -1,0 +1,5 @@
+anthropic>=1.0
+pydantic>=2
+imageio-ffmpeg>=0.5
+# 자막이 필요하면:
+# faster-whisper>=1.0
