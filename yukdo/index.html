@@ -82,8 +82,8 @@
     left: 50%;
     bottom: calc(24px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
-    font-size: 0.85rem;
-    color: var(--text-sub);
+    font-size: 1rem;
+    color: #fff;
     letter-spacing: 0.04em;
     animation: blink 1.8s ease-in-out infinite;
     white-space: nowrap;
@@ -390,7 +390,7 @@
 <!-- 1단계: 시작 화면 -->
 <section class="screen tap active" id="intro" aria-label="시작 화면. 누르면 테스트가 시작됩니다" role="button" tabindex="0">
   <div class="full"></div>
-  <span class="tap-hint">화면을 눌러 시작하기</span>
+  <span class="tap-hint">화면을 터치해서 시작하기</span>
 </section>
 
 <!-- 2단계: 질문 화면 -->
@@ -412,6 +412,7 @@
 <!-- 3단계: 완료 화면 -->
 <section class="screen tap" id="done" aria-label="테스트 완료. 누르면 결과 카드로 이동합니다" role="button" tabindex="0">
   <div class="full"></div>
+  <span class="tap-hint">화면을 터치해서 넘기기</span>
 </section>
 
 <!-- 4단계: 결과 카드 -->
