@@ -355,6 +355,10 @@
   .result-text p { font-size: 0.95rem; line-height: 1.85; text-align: left; }
   .result-text mark { background: var(--m); color: inherit; padding: 0 2px; border-radius: 3px; }
   /* 결과 이미지가 있으면: 넓은 화면은 이미지만, 좁은 화면은 이미지 + 읽기 쉬운 글씨 */
+  /* 머리 이미지에는 제목이 이미 있으니 h2만 숨김 */
+  .modal-box.has-head { max-width: 560px; }
+  .modal-box.has-head .result-text { padding-top: 12px; }
+  .modal-box.has-head .result-text h2 { display: none; }
   .modal-box.has-img .result-text { display: none; }
   @media (max-width: 700px) {
     .modal-box.has-img .result-text { display: block; }
@@ -562,27 +566,27 @@ const QUESTIONS = [
 /* 결과 : card = 카드 이미지, img = 상세 결과 이미지(없으면 아래 글로 보여줌) */
 const RESULTS = [
   { name: '지옥도', min: 15, max: 27, c: '#b3171b', m: '#ffd9d3',
-    card: 'KakaoTalk_20260923_205905691.jpg', img: 'result_1.jpg',
+    card: 'KakaoTalk_20260923_205905691.jpg', img: 'result_1.jpg', head: 'head_1.jpg',
     sub: '평소 나쁜 행동을 일삼던 악인들이 가게 되는 곳',
     body: '지옥에서는 자신이 했던 악행에 따라 끔찍한 고문을 당하며 참혹한 고통을 겪는다고 합니다. 아무리 죽고 싶어도 죽지 못하고 고문을 당하며 자기 삶에서 지었던 나쁜 행위들이 계속해서 반복됩니다. 지옥도에 해당하는 사람은 <mark>최근에 많이 올라온 마음</mark>이 <mark>분노</mark>와 <mark>증오</mark>일 수 있고, <mark>폭력적이고 해로운 행동</mark>을 하는 등 마음속의 <mark>적대감과 분노</mark>를 계속 키우고 그것을 행동으로 옮긴 경향이 있진 않았는지 스스로 관해볼 필요가 있겠습니다.' },
   { name: '아귀도', min: 28, max: 40, c: '#5b2a86', m: '#dcdcf5',
-    card: 'KakaoTalk_20260923_205905691_01.jpg', img: 'result_2.jpg',
+    card: 'KakaoTalk_20260923_205905691_01.jpg', img: 'result_2.jpg', head: 'head_2.jpg',
     sub: '탐욕스럽고 불쌍한 이를 무시하며 질투가 심한 사람이 가는 곳',
     body: '아귀란 배는 태산만큼 큰데, 목은 바늘 구멍처럼 아주 작아서 항상 배고픔을 느끼면서도 아무것도 먹지 못하는 고통을 받는 존재입니다. 그래서 아귀로 태어난 사람들은 늘 굶주림과 목마름으로 고통 받으며 살게 됩니다. 아귀도에 해당하는 사람은 최근 <mark>탐욕</mark>이나 <mark>집착</mark>, 지나친 <mark>욕망</mark>을 품진 않았는지 들여다볼 필요가 있고, 단순히 욕심이 많은 상태를 넘어 <mark>원하는 것을 얻고 나서도 채워지지 않아 갈증에 시달리는 경향</mark>이 있진 않았는지 스스로 관해볼 필요가 있겠습니다.' },
   { name: '축생도', min: 41, max: 52, c: '#3f6b2a', m: '#e3f1d4',
-    card: 'KakaoTalk_20260923_205905691_02.jpg', img: 'result_3.jpg',
+    card: 'KakaoTalk_20260923_205905691_02.jpg', img: 'result_3.jpg', head: 'head_3.jpg',
     sub: '동물로 태어나는 세계',
     body: '축생은 다른 존재에게 잡아먹히거나, 먹이를 얻기 위해 서로 경쟁하는 등 살아남기 위해 많은 어려움을 겪는 존재이기도 합니다. 즉, 축생도는 <mark>어리석음</mark>과 <mark>본능에 이끌려</mark> 살아가는 세계입니다. <mark>무지</mark>에 가려져 진리를 제대로 보지 못하고, 본능과 두려움 등에 끌려 살아가는 존재라는 의미가 있으므로, 축생도에 해당하는 사람은 최근 <mark>지혜롭지 못하게 본능과 습관에 끄달리는 삶</mark>을 살지 않았는지 관해볼 필요가 있겠습니다.' },
   { name: '수라도', min: 53, max: 65, c: '#c4561b', m: '#fff0c4',
-    card: 'KakaoTalk_20260923_205905691_03.jpg', img: 'result_4.jpg',
+    card: 'KakaoTalk_20260923_205905691_03.jpg', img: 'result_4.jpg', head: 'head_4.jpg',
     sub: '오로지 투쟁만 존재하는 곳',
     body: '그야말로 <mark>무법천지</mark>. 이곳 사람들은 사실 지혜는 있지만 <mark>경쟁심</mark>이 너무나 강해 싸우기를 좋아합니다. 수라도는 <mark>선악이 뒤섞여 있는 곳</mark>이자 생전에 <mark>교만</mark>하며 <mark>시기심</mark>이 강했던 사람들이 죽어서 다시 태어나는 곳입니다. 어느 정도 힘과 능력을 가진 존재지만, 끊임없이 다른 존재와 경쟁하고 질투하며 싸우는 존재로 묘사되는데, 수라도에 해당하는 사람은 최근 <mark>질투</mark>와 경쟁심으로 <mark>남보다 앞서야 한다는 마음</mark>에 사로잡히진 않았었는지 관해볼 필요가 있겠습니다.' },
   { name: '인간도', min: 66, max: 77, c: '#1b6aa5', m: '#cdeeff',
-    card: 'KakaoTalk_20260923_205905691_04.jpg', img: 'result_5.jpg',
+    card: 'KakaoTalk_20260923_205905691_04.jpg', img: 'result_5.jpg', head: 'head_5.jpg',
     sub: '전생에 선과 악을 비슷하게 지었을 때 태어나는 세계',
     body: '우리가 사는 이 세상에서는 <mark>생로병사</mark>에 시달리며 번뇌를 안고 살아가지만, 다른 어떤 세계보다 유연하게 불법을 닦아 <mark>깨달음을 얻을 가능성이 큽니다. 지금 어떤 마음을 내느냐에 따라 지옥과 천상을 오갈</mark> 수도 있고, 결국 이를 벗어나 깨달음으로 나아갈 수도 있는 존재가 바로 인간입니다. 따라서 ‘나는 그냥 보통이구나’라고 생각하기보다, <mark>내 마음을 어디로 이끌어갈지는 나에게 달려 있다</mark>는 점을 기억해야 합니다.' },
   { name: '천상도', min: 78, max: 90, c: '#d0619c', m: '#ffdcee',
-    card: 'KakaoTalk_20260923_205905691_05.jpg', img: 'result_6.jpg',
+    card: 'KakaoTalk_20260923_205905691_05.jpg', img: 'result_6.jpg', head: 'head_6.jpg',
     sub: '신들의 세계로, 마치 극락처럼 번뇌가 적고 평안한 세계',
     body: '천상도에 태어나는 사람들은 물욕은 없지만 <mark>명예와 지식욕</mark>이 남아있는 경우가 있습니다. 그래서 집착에서 완전히 자유롭지 못하며, <mark>언제든 다시 육도를 윤회</mark>하게 될 수 있습니다. 천상도에 해당하는 사람은 최근 <mark>행복</mark>과 <mark>평온함</mark> 같은 <mark>긍정적인 상태를 비교적 잘 유지</mark>하고 있는 것으로 볼 수 있습니다. 다만 천상도 역시 윤회를 벗어난 곳은 아니므로, 그 <mark>행복에 머물고자 집착하면 또 다른 번뇌가 생기게 됩니다.</mark> 현재의 좋은 상황에만 집착하고 있지는 않은지 스스로 돌아보는 것이 필요합니다.' }
 ];
@@ -702,12 +706,19 @@ function openResult(r) {
   $('resultSub').textContent = r.sub;
   $('resultBody').innerHTML = r.body;
 
-  box.classList.remove('has-img');
+  // 머리 이미지(head_N) → 없으면 전체 결과 이미지(result_N) → 둘 다 없으면 글만
+  const sources = [[r.head, 'has-head'], [r.img, 'has-img']];
+  let tryIdx = 0;
+  box.classList.remove('has-img', 'has-head');
   img.hidden = true;
-  img.onload = () => { img.hidden = false; box.classList.add('has-img'); };
-  img.onerror = () => { img.hidden = true; box.classList.remove('has-img'); };
+  img.onload = () => { img.hidden = false; box.classList.add(sources[tryIdx][1]); };
+  img.onerror = () => {
+    tryIdx++;
+    if (tryIdx < sources.length) img.src = sources[tryIdx][0];
+    else img.hidden = true;
+  };
   img.alt = `${r.name} 결과`;
-  img.src = r.img;
+  img.src = sources[0][0];
 
   $('toast').classList.remove('show');
   box.scrollTop = 0;
@@ -745,7 +756,7 @@ onActivate($('done'), () => {
   'KakaoTalk_20260923_205858619_01.jpg',
   'KakaoTalk_20260923_205858619_02.jpg',
   'KakaoTalk_20260923_205858619_03.jpg',
-  ...RESULTS.flatMap((r) => [r.card, r.img])
+  ...RESULTS.flatMap((r) => [r.card, r.head])
 ].forEach((src) => { new Image().src = src; });
 
 buildCards();
