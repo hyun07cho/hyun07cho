@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#14244d">
+<title>육도윤회 심리테스트</title>
+<meta name="description" content="15개의 질문으로 최근 내 마음이 머무는 곳을 알아보는 육도윤회 심리테스트">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night: #14244d;
+    --night-deep: #0b1433;
+    --text: #ffffff;
+    --text-sub: rgba(255, 255, 255, 0.78);
+    --btn-bg: rgba(10, 16, 40, 0.55);
+    --btn-bg-hover: rgba(40, 52, 110, 0.7);
+    --btn-border: rgba(255, 255, 255, 0.35);
+    --accent: #ffd45c;
+    --fade: 0.6s;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--night-deep);
+    color: var(--text);
+    font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+    word-break: keep-all;
+  }
+
+  /* ---------- 공통 화면 ---------- */
+  .screen {
+    position: fixed;
+    inset: 0;
+    height: 100dvh;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: var(--night);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--fade) ease, visibility 0s linear var(--fade);
+    overflow: hidden;
+  }
+  .screen.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--fade) ease, visibility 0s linear 0s;
+  }
+
+  /* 이미지에 글씨가 있는 화면(시작, 완료) : 세로 화면에서도 글씨가 잘리지 않도록
+     배경은 cover(흐리게)로 꽉 채우고, 원본은 contain으로 위에 한 번 더 올림 */
+  .screen.tap { cursor: pointer; }
+  .screen.tap .full {
+    position: absolute;
+    inset: 0;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .screen.tap::before {
+    content: "";
+    position: absolute;
+    inset: -30px;
+    background: inherit;
+    background-size: cover;
+    filter: blur(18px) brightness(0.85);
+  }
+  @media (min-aspect-ratio: 13/10) {
+    /* 가로로 넓은 화면에선 원래 요구대로 cover 하나만 사용 */
+    .screen.tap .full { background-size: cover; }
+    .screen.tap::before { display: none; }
+  }
+
+  .tap-hint {
+    position: absolute;
+    left: 50%;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    letter-spacing: 0.04em;
+    animation: blink 1.8s ease-in-out infinite;
+    white-space: nowrap;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  }
+  @keyframes blink { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+
+  /* ---------- 1. 시작 ---------- */
+  #intro { background-image: url('KakaoTalk_20260923_205858619.jpg'); }
+  #intro .full { background-image: url('KakaoTalk_20260923_205858619.jpg'); }
+
+  /* ---------- 2. 질문 ---------- */
+  #quiz {
+    background-image:
+      linear-gradient(rgba(8, 12, 32, 0.25), rgba(8, 12, 32, 0.45)),
+      url('KakaoTalk_20260923_205858619_01.jpg');
+  }
+  .quiz-inner {
+    height: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .progress-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    margin-bottom: 8px;
+  }
+  .progress-bar {
+    height: 6px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #f5c6ff, var(--accent));
+    transition: width 0.5s ease;
+  }
+
+  .q-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 24px 0 8px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .q-box.out { opacity: 0; transform: translateY(10px); }
+
+  .q-num {
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 1.6rem;
+    color: var(--accent);
+    text-align: center;
+    text-shadow: 0 2px 12px rgba(255, 212, 92, 0.35);
+  }
+  .q-text {
+    margin: 10px 0 24px;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 1.28rem;
+    line-height: 1.55;
+    text-align: center;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    text-align: left;
+    padding: 13px 16px;
+    border: 1px solid var(--btn-border);
+    border-radius: 14px;
+    background: var(--btn-bg);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  }
+  .choice .key {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    display: grid;
+    place-items: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-top: 1px;
+  }
+  @media (hover: hover) {
+    .choice:hover { background: var(--btn-bg-hover); border-color: rgba(255, 255, 255, 0.7); }
+  }
+  .choice:active, .choice.picked {
+    transform: scale(0.98);
+    background: rgba(255, 212, 92, 0.22);
+    border-color: var(--accent);
+  }
+  .choice:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .back-btn {
+    align-self: center;
+    margin-top: 16px;
+    background: none;
+    border: none;
+    color: var(--text-sub);
+    font: inherit;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    padding: 6px 10px;
+  }
+  .back-btn[hidden] { display: none; }
+
+  /* ---------- 3. 완료 ---------- */
+  #done { background-image: url('KakaoTalk_20260923_205858619_02.jpg'); }
+  #done .full { background-image: url('KakaoTalk_20260923_205858619_02.jpg'); }
+
+  /* ---------- 4. 결과 카드 ---------- */
+  #cards { background-image: url('KakaoTalk_20260923_205858619_03.jpg'); overflow-y: auto; }
+  .cards-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: calc(28px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));
+  }
+  .score-box { text-align: center; margin-bottom: 20px; }
+  .score-label { font-size: 0.9rem; color: var(--text-sub); }
+  .score-value {
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 3rem;
+    line-height: 1.2;
+    color: var(--accent);
+    text-shadow: 0 0 18px rgba(255, 212, 92, 0.45);
+  }
+  .score-value small { font-size: 1.3rem; margin-left: 2px; }
+  .score-guide { font-size: 0.95rem; line-height: 1.6; }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  @media (min-width: 640px) { .card-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } }
+
+  .card {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border: none;
+    border-radius: 14px;
+    overflow: hidden;
+    padding: 0;
+    cursor: pointer;
+    background: linear-gradient(160deg, #1d1b5c, #4a2f8a);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  #cards.active .card {
+    animation: cardIn 0.6s ease forwards;
+    animation-delay: calc(var(--i) * 0.1s + 0.2s);
+  }
+  @keyframes cardIn { to { opacity: 1; transform: none; } }
+  .card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+  @media (hover: hover) { .card:hover img { transform: scale(1.04); } }
+  .card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  /* 이미지가 없을 때 보이는 대체 텍스트 */
+  .card .fallback {
+    position: absolute;
+    inset: 0;
+    display: none;
+    place-items: center;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 1.3rem;
+    color: #fff;
+    line-height: 1.4;
+  }
+  .card.no-img img { display: none; }
+  .card.no-img .fallback { display: grid; }
+
+  .card.shake { animation: shake 0.45s ease both !important; opacity: 1; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(28px + env(safe-area-inset-bottom));
+    transform: translate(-50%, 20px);
+    max-width: calc(100% - 32px);
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: rgba(10, 14, 36, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font-size: 0.9rem;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 30;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- 결과 모달 ---------- */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(4, 6, 20, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+  }
+  .modal.open { opacity: 1; visibility: visible; transition: opacity 0.4s ease, visibility 0s; }
+  .modal-box {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    border-radius: 18px;
+    background: #fff;
+    color: #222;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.4s ease;
+  }
+  .modal.open .modal-box { transform: none; }
+  .modal-img { width: 100%; display: block; }
+  .modal-img[hidden] { display: none; }
+
+  .result-text { padding: 24px 22px 8px; text-align: center; }
+  .result-text h2 {
+    display: inline-block;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 2rem;
+    padding: 2px 28px;
+    border: 2px solid var(--c);
+    border-radius: 99px;
+    color: var(--c);
+  }
+  .result-text .sub { margin: 14px 0 12px; font-weight: 700; font-size: 1.05rem; color: var(--c); line-height: 1.5; }
+  .result-text p { font-size: 0.95rem; line-height: 1.85; text-align: left; }
+  .result-text mark { background: var(--m); color: inherit; padding: 0 2px; border-radius: 3px; }
+  /* 결과 이미지가 있으면: 넓은 화면은 이미지만, 좁은 화면은 이미지 + 읽기 쉬운 글씨 */
+  .modal-box.has-img .result-text { display: none; }
+  @media (max-width: 700px) {
+    .modal-box.has-img .result-text { display: block; }
+    .modal-box.has-img .result-text h2 { display: none; }
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    padding: 18px 20px 22px;
+  }
+  .modal-actions button {
+    flex: 1;
+    max-width: 200px;
+    padding: 12px 10px;
+    border-radius: 12px;
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  .btn-close { background: #fff; color: #333; border: 1px solid #ccc; }
+  .btn-retry { background: var(--night); color: #fff; border: 1px solid var(--night); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 1단계: 시작 화면 -->
+<section class="screen tap active" id="intro" aria-label="시작 화면. 누르면 테스트가 시작됩니다" role="button" tabindex="0">
+  <div class="full"></div>
+  <span class="tap-hint">화면을 눌러 시작하기</span>
+</section>
+
+<!-- 2단계: 질문 화면 -->
+<section class="screen" id="quiz" aria-label="테스트 문항">
+  <div class="quiz-inner">
+    <div>
+      <div class="progress-top"><span>육도윤회 심리테스트</span><span id="progressText">1 / 15</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="q-box" id="qBox">
+      <div class="q-num" id="qNum">Q1.</div>
+      <h1 class="q-text" id="qText"></h1>
+      <div class="choices" id="choices"></div>
+      <button class="back-btn" id="backBtn" type="button" hidden>← 이전 문항</button>
+    </div>
+  </div>
+</section>
+
+<!-- 3단계: 완료 화면 -->
+<section class="screen tap" id="done" aria-label="테스트 완료. 누르면 결과 카드로 이동합니다" role="button" tabindex="0">
+  <div class="full"></div>
+</section>
+
+<!-- 4단계: 결과 카드 -->
+<section class="screen" id="cards" aria-label="결과 카드 선택">
+  <div class="cards-inner">
+    <div class="score-box">
+      <div class="score-label">나의 최종 점수</div>
+      <div class="score-value"><span id="scoreValue">0</span><small>점</small></div>
+      <p class="score-guide">내 점수가 적힌 카드를 찾아 눌러보세요!</p>
+    </div>
+    <div class="card-grid" id="cardGrid"></div>
+  </div>
+</section>
+
+<!-- 결과 모달 -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+  <div class="modal-box" id="modalBox">
+    <img class="modal-img" id="modalImg" alt="">
+    <div class="result-text" id="resultText">
+      <h2 id="resultTitle"></h2>
+      <div class="sub" id="resultSub"></div>
+      <p id="resultBody"></p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-close" id="closeBtn">카드 다시 보기</button>
+      <button type="button" class="btn-retry" id="retryBtn">다시 테스트하기</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =========================================================
+   점수 규칙 : 선택지마다 해당하는 세계의 점수를 받음
+   지옥도 1 · 아귀도 2 · 축생도 3 · 수라도 4 · 인간도 5 · 천상도 6
+   → 15문항 합계 15 ~ 90점
+   ========================================================= */
+const QUESTIONS = [
+  { q: '내가 은근히 원하던 칭찬을 친구가 받았다.', a: [
+    ['나도 저런 인정을 받고 싶어서 사람들이 그 친구에게 어떻게 반응하는지 계속 신경 쓰인다.', 2],
+    ['잠깐 부러운 마음이 들었다는 걸 인정하고, 다시 내가 할 수 있는 것에 집중한다.', 5],
+    ['친구를 축하해주고, 나도 지금 내가 가진 것에 꽤 만족한다.', 6],
+    ['다음에는 반드시 내가 더 잘해야겠다는 생각이 든다.', 4],
+    ['그냥 넘기고 원래 하던 걸 한다. 왜 마음이 묘한지는 별로 생각하지 않는다.', 3],
+    ['괜히 꼴 보기 싫고, 속으로 선뜻 마음 깊이 축하해주기가 힘들다.', 1] ] },
+  { q: '열심히 준비한 일이 예상과 다르게 꼬였다.', a: [
+    ['결과가 계속 머릿속에 남아서 다른 일을 하면서도 쉽게 놓이지 않는다.', 2],
+    ['생각하기 싫어져 일단 미뤄두고 다른 재미있는 걸 찾는다.', 3],
+    ['“오늘은 그냥 쉬라는 날인가 보다.” 하고 잠시 편하게 쉰다.', 6],
+    ['남들은 잘하고 있는데 나만 뒤처진 것 같아 나를 더 몰아붙인다.', 4],
+    ['나를 방해한 인물이나 환경부터 생각나고, 짜증이 난다.', 1],
+    ['왜 안됐는지 살펴보고, 지금 바꿀 수 있는 것부터 다시 정리한다.', 5] ] },
+  { q: 'SNS에 올린 게시물의 반응이 생각보다 적다.', a: [
+    ['좋아요나 조회수를 몇 번이고 다시 확인하게 된다.', 2],
+    ['내가 왜 반응을 기대했는지 잠깐 생각해보고, 부질 없다고 느끼면 신경을 끈다.', 5],
+    ['내가 올리고 싶어서 올린 거니까 됐다고 생각한다.', 6],
+    ['별생각 없이 다음 피드나 쇼츠를 계속 넘긴다.', 3],
+    ['비슷한 친구의 계정과 반응 수를 비교하고 다음에는 더 잘 나오게 하고 싶어진다.', 4],
+    ['반응 없는 사람들에게 괜히 서운하고, 팔로우를 취소하거나 게시물을 지운다.', 1] ] },
+  { q: '갖고 싶었던 물건이 ‘오늘까지만 한정 판매’라고 한다.', a: [
+    ['정말 필요한지, 지금 사도 괜찮은지 생각해본 뒤 결정한다.', 5],
+    ['갖고 싶고 부담도 없다면 기분 좋게 사고 만족한다.', 6],
+    ['품절될까 계속 확인하게 되고, 지금 안 사면 큰일 날 것처럼 느껴진다.', 2],
+    ['친구보다 먼저 사거나 더 좋은 버전을 가져야 괜히 마음이 놓인다.', 4],
+    ['돈이 없거나, 품절이 되는 등 못 사게 되는 상황이 오면 짜증이 난다.', 1],
+    ['눈에 들어오면 일단 구매하고, 나중에 생각한다.', 3] ] },
+  { q: '여러 명이 함께 하는 일에서 내 의견과 다른 의견이 나왔다.', a: [
+    ['상대의 말을 들어보고 내 의견도 설명한 뒤, 절충하거나 더 나은 쪽을 선택하려 한다.', 5],
+    ['다른 사람 의견 보다는 내 의견이 채택되길 원한다.', 2],
+    ['분위기도 괜찮고 결과도 나쁘지 않다면 굳이 내 의견을 끝까지 밀지는 않는다.', 6],
+    ['분위기가 불편해지는 게 싫어서 그냥 아무 말 없이 따라간다.', 3],
+    ['괜히 상대방의 말과 행동이 거슬린다.', 1],
+    ['내 의견이 더 낫다는 걸 증명하려 한다.', 4] ] },
+  { q: '시험 결과가 기대보다 낮게 나왔다.', a: [
+    ['“그래도 이 정도면 됐지.” 하고 비교적 빨리 기분을 회복한다.', 6],
+    ['틀린 부분을 살펴보고 다음에 바꿀 것 한 가지를 정한다.', 5],
+    ['일단 성적표를 덮고 평소대로 지낸다. 틀린 이유는 딱히 돌아보지 않는다.', 3],
+    ['점수가 계속 생각나서 몇 번이고 확인하고, 조금만 더 높았으면 좋았을 텐데 싶다.', 2],
+    ['친구들의 점수나 등수부터 보고 다음에는 반드시 앞서야겠다고 생각한다.', 4],
+    ['시험 문제나 상황이 잘못됐다는 생각이 들고 괜히 화가 난다.', 1] ] },
+  { q: '오늘 저녁은 완전히 자유 시간이다.', a: [
+    ['누가 내 시간을 방해하거나 잔소리하면 짜증이 확 난다.', 1],
+    ['지금 나에게 필요한 게 진짜 휴식인지, 해야 할 일이 있는지 한 번 생각해본다.', 5],
+    ['자유시간이 끝나는 게 아쉬워서 밤을 지새운다.', 2],
+    ['쇼츠, 게임, 영상 등을 손 가는 대로 보다 보니 어느새 시간이 다 지나 있다.', 3],
+    ['좋아하는 것을 하면서 “오늘 좋다.” 하고 편하게 쉰다.', 6],
+    ['다른 사람이 공부나 운동하는 모습을 보면 갑자기 뒤처지기 싫어서 나도 뭔가 해야 할 것 같다.', 4] ] },
+  { q: '기대했던 약속을 친구가 갑자기 취소했다.', a: [
+    ['“다른 사람과의 약속은 잘 지키면서?”라는 생각이 들며 내가 얼마나 중요한 사람인지 비교하게 된다.', 4],
+    ['친구가 언제 다시 약속을 잡을지, 나를 어떻게 생각하는지 계속 신경 쓰인다.', 2],
+    ['별다른 생각없이 그냥 다른 일을 하면서 넘긴다.', 3],
+    ['아쉬운 마음을 인정하고 이유를 들은 뒤, 필요하면 다음 약속을 잡는다.', 5],
+    ['화가 나서 다음에는 나도 일부러 약속을 안 잡아주고 싶어진다.', 1],
+    ['갑자기 시간이 생겼으니 오히려 좋아하고 혼자 하고 싶었던 걸 한다.', 6] ] },
+  { q: '누군가 나에게 듣기 불편한 지적을 했다.', a: [
+    ['“그래도 내가 잘하는 것도 많은데 뭐.” 하고 비교적 금방 기분을 회복한다.', 6],
+    ['기분 나쁜 부분과 실제로 도움이 되는 부분을 나눠서 생각해본다.', 5],
+    ['다음에는 실력으로 확실하게 보여줘야겠다는 생각이 든다.', 4],
+    ['그 말이 계속 머릿속에서 반복돼서 주변 사람에게 “내가 진짜 그래?” 하고 확인하게 된다.', 2],
+    ['바로 그 사람의 단점을 떠올리며 나도 한마디 해주고 싶어진다.', 1],
+    ['듣기 싫어서 그냥 피한다. 나중에도 굳이 다시 생각하지 않는다.', 3] ] },
+  { q: '예상보다 큰 성과나 칭찬을 받았다.', a: [
+    ['사람들이 나를 어떻게 봤는지 계속 확인하고 더 많은 칭찬을 받고 싶어진다.', 2],
+    ['기분 좋게 받아들이면서 무엇이 잘됐는지 돌아보고 다음을 생각한다.', 5],
+    ['신나서 기분 가는 대로 즐긴다.', 3],
+    ['예전에 나를 무시했던 사람이 떠오르고 성공한 모습을 보여주고 싶다.', 1],
+    ['이왕 잘된 거 다음에는 다른 사람보다 더 큰 결과를 내고 싶어진다.', 4],
+    ['충분히 기뻐하고 “당분간은 이대로도 좋다.”라는 생각이 든다.', 6] ] },
+  { q: '게임이나 스포츠에서 순위 경쟁을 하게 됐다.', a: [
+    ['이기면 기분 좋게 즐기고, 충분히 했다 싶으면 그만한다.', 6],
+    ['내가 지금 재미있어서 하는 건지 오기로 하는 건지 확인하고 계속할지 결정한다.', 5],
+    ['지면 팀원이나 상대방 때문에 졌다고 느껴져 짜증이 확 난다.', 1],
+    ['원하는 등급이나 아이템을 얻을 때까지 계속해야 마음이 편하다.', 2],
+    ['피곤해도 습관처럼 계속하다가 정신 차려보면 시간이 많이 지나 있다.', 3],
+    ['친구나 순위표에 있는 사람보다 반드시 높은 순위에 올라가고 싶다.', 4] ] },
+  { q: '다이어트 중에 먹고 싶은 음식이 눈앞에 있다.', a: [
+    ['내가 진짜 배고픈 건지, 기분 때문에 먹고 싶은 건지 잠깐 확인한 뒤 결정한다.', 5],
+    ['눈앞에 있으면 별생각 없이 손이 간다.', 3],
+    ['못 먹는다고 생각할수록 더 먹고 싶고, 먹은 뒤에도 계속 음식 생각이 난다.', 2],
+    ['먹고 싶은 만큼 적당히 즐긴 뒤 별다른 후회 없이 끝낸다.', 6],
+    ['다른 사람이 먹는 양이나 몸매와 비교하면서 내가 더 철저하게 관리해야 할 것 같다.', 4],
+    ['먹지 못하면 스스로에게 짜증이 나고 주변 사람들에게 예민해진다.', 1] ] },
+  { q: '해야 할 일이 어렵고 시작하기 부담스럽다.', a: [
+    ['할 일을 작게 나누고 지금 할 수 있는 것 하나부터 시작한다.', 5],
+    ['결과가 완벽해야 할 것 같아 시작하고 나서도 나아가지 못한다.', 2],
+    ['어느 정도 해냈다면 “이 정도면 됐다.” 하고 쉬러 간다.', 6],
+    ['다른 사람이 얼마나 잘했는지 확인하고, 그것보다 더 좋은 결과를 내고 싶어진다.', 4],
+    ['일단 미루고 더 쉽고 재미있는 일을 한다.', 3],
+    ['생각대로 안 풀리면 상황이나 주변 사람에게 짜증이 나고 화를 쏟게 된다.', 1] ] },
+  { q: '내가 원했던 기회를 다른 사람이 가져갔다.', a: [
+    ['“왜 하필 쟤야?”라는 생각이 들며 그 사람이나 결정한 사람에게 원망이 생긴다.', 1],
+    ['왜 나는 못 받았는지가 계속 마음에 걸리고, 나도 꼭 그런 기회를 받아야 할 것 같다.', 2],
+    ['다음에는 저 사람보다 더 잘해서 반드시 내가 그 기회를 가져오고 싶다.', 4],
+    ['아쉬운 마음을 인정하고 내가 배울 점이나 다음 기회를 생각한다.', 5],
+    ['별일 아닌 척하고 그냥 원래 하던 일을 한다. 속마음은 굳이 들여다보지 않는다.', 3],
+    ['그 사람을 축하해주고 지금 내 상황에서도 좋은 점을 찾아본다.', 6] ] },
+  { q: '나에 대한 이상한 오해나 소문이 생겼다.', a: [
+    ['결국에는 내가 더 좋은 평가를 받아야 한다는 생각으로 이미지나 평판을 적극적으로 관리한다.', 4],
+    ['사실관계를 확인하고 필요한 사람에게 설명한 뒤, 내가 할 수 없는 부분은 놓아둔다.', 5],
+    ['그냥 시간이 해결하겠지 하며 피한다.', 3],
+    ['너무 화가 나서 상대의 잘못도 다른 사람들에게 알려주거나 똑같이 되갚고 싶다.', 1],
+    ['누가 이 이야기를 들었는지, 사람들이 나를 어떻게 생각하는지 계속 확인한다.', 2],
+    ['나를 잘 아는 사람들을 믿고 평소 생활을 이어간다.', 6] ] }
+];
+
+/* 결과 : card = 카드 이미지, img = 상세 결과 이미지(없으면 아래 글로 보여줌) */
+const RESULTS = [
+  { name: '지옥도', min: 15, max: 27, c: '#b3171b', m: '#ffd9d3',
+    card: 'KakaoTalk_20260923_205905691.jpg', img: 'result_1.jpg',
+    sub: '평소 나쁜 행동을 일삼던 악인들이 가게 되는 곳',
+    body: '지옥에서는 자신이 했던 악행에 따라 끔찍한 고문을 당하며 참혹한 고통을 겪는다고 합니다. 아무리 죽고 싶어도 죽지 못하고 고문을 당하며 자기 삶에서 지었던 나쁜 행위들이 계속해서 반복됩니다. 지옥도에 해당하는 사람은 <mark>최근에 많이 올라온 마음</mark>이 <mark>분노</mark>와 <mark>증오</mark>일 수 있고, <mark>폭력적이고 해로운 행동</mark>을 하는 등 마음속의 <mark>적대감과 분노</mark>를 계속 키우고 그것을 행동으로 옮긴 경향이 있진 않았는지 스스로 관해볼 필요가 있겠습니다.' },
+  { name: '아귀도', min: 28, max: 40, c: '#5b2a86', m: '#dcdcf5',
+    card: 'KakaoTalk_20260923_205905691_01.jpg', img: 'result_2.jpg',
+    sub: '탐욕스럽고 불쌍한 이를 무시하며 질투가 심한 사람이 가는 곳',
+    body: '아귀란 배는 태산만큼 큰데, 목은 바늘 구멍처럼 아주 작아서 항상 배고픔을 느끼면서도 아무것도 먹지 못하는 고통을 받는 존재입니다. 그래서 아귀로 태어난 사람들은 늘 굶주림과 목마름으로 고통 받으며 살게 됩니다. 아귀도에 해당하는 사람은 최근 <mark>탐욕</mark>이나 <mark>집착</mark>, 지나친 <mark>욕망</mark>을 품진 않았는지 들여다볼 필요가 있고, 단순히 욕심이 많은 상태를 넘어 <mark>원하는 것을 얻고 나서도 채워지지 않아 갈증에 시달리는 경향</mark>이 있진 않았는지 스스로 관해볼 필요가 있겠습니다.' },
+  { name: '축생도', min: 41, max: 52, c: '#3f6b2a', m: '#e3f1d4',
+    card: 'KakaoTalk_20260923_205905691_02.jpg', img: 'result_3.jpg',
+    sub: '동물로 태어나는 세계',
+    body: '축생은 다른 존재에게 잡아먹히거나, 먹이를 얻기 위해 서로 경쟁하는 등 살아남기 위해 많은 어려움을 겪는 존재이기도 합니다. 즉, 축생도는 <mark>어리석음</mark>과 <mark>본능에 이끌려</mark> 살아가는 세계입니다. <mark>무지</mark>에 가려져 진리를 제대로 보지 못하고, 본능과 두려움 등에 끌려 살아가는 존재라는 의미가 있으므로, 축생도에 해당하는 사람은 최근 <mark>지혜롭지 못하게 본능과 습관에 끄달리는 삶</mark>을 살지 않았는지 관해볼 필요가 있겠습니다.' },
+  { name: '수라도', min: 53, max: 65, c: '#c4561b', m: '#fff0c4',
+    card: 'KakaoTalk_20260923_205905691_03.jpg', img: 'result_4.jpg',
+    sub: '오로지 투쟁만 존재하는 곳',
+    body: '그야말로 <mark>무법천지</mark>. 이곳 사람들은 사실 지혜는 있지만 <mark>경쟁심</mark>이 너무나 강해 싸우기를 좋아합니다. 수라도는 <mark>선악이 뒤섞여 있는 곳</mark>이자 생전에 <mark>교만</mark>하며 <mark>시기심</mark>이 강했던 사람들이 죽어서 다시 태어나는 곳입니다. 어느 정도 힘과 능력을 가진 존재지만, 끊임없이 다른 존재와 경쟁하고 질투하며 싸우는 존재로 묘사되는데, 수라도에 해당하는 사람은 최근 <mark>질투</mark>와 경쟁심으로 <mark>남보다 앞서야 한다는 마음</mark>에 사로잡히진 않았었는지 관해볼 필요가 있겠습니다.' },
+  { name: '인간도', min: 66, max: 77, c: '#1b6aa5', m: '#cdeeff',
+    card: 'KakaoTalk_20260923_205905691_04.jpg', img: 'result_5.jpg',
+    sub: '전생에 선과 악을 비슷하게 지었을 때 태어나는 세계',
+    body: '우리가 사는 이 세상에서는 <mark>생로병사</mark>에 시달리며 번뇌를 안고 살아가지만, 다른 어떤 세계보다 유연하게 불법을 닦아 <mark>깨달음을 얻을 가능성이 큽니다. 지금 어떤 마음을 내느냐에 따라 지옥과 천상을 오갈</mark> 수도 있고, 결국 이를 벗어나 깨달음으로 나아갈 수도 있는 존재가 바로 인간입니다. 따라서 ‘나는 그냥 보통이구나’라고 생각하기보다, <mark>내 마음을 어디로 이끌어갈지는 나에게 달려 있다</mark>는 점을 기억해야 합니다.' },
+  { name: '천상도', min: 78, max: 90, c: '#d0619c', m: '#ffdcee',
+    card: 'KakaoTalk_20260923_205905691_05.jpg', img: 'result_6.jpg',
+    sub: '신들의 세계로, 마치 극락처럼 번뇌가 적고 평안한 세계',
+    body: '천상도에 태어나는 사람들은 물욕은 없지만 <mark>명예와 지식욕</mark>이 남아있는 경우가 있습니다. 그래서 집착에서 완전히 자유롭지 못하며, <mark>언제든 다시 육도를 윤회</mark>하게 될 수 있습니다. 천상도에 해당하는 사람은 최근 <mark>행복</mark>과 <mark>평온함</mark> 같은 <mark>긍정적인 상태를 비교적 잘 유지</mark>하고 있는 것으로 볼 수 있습니다. 다만 천상도 역시 윤회를 벗어난 곳은 아니므로, 그 <mark>행복에 머물고자 집착하면 또 다른 번뇌가 생기게 됩니다.</mark> 현재의 좋은 상황에만 집착하고 있지는 않은지 스스로 돌아보는 것이 필요합니다.' }
+];
+
+const KEYS = ['A', 'B', 'C', 'D', 'E', 'F'];
+const $ = (id) => document.getElementById(id);
+
+let current = 0;
+let picks = [];      // 문항별로 받은 점수
+let locked = false;  // 전환 중 중복 클릭 방지
+
+/* ---------- 화면 전환 ---------- */
+function show(id) {
+  document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === id));
+}
+
+/* ---------- 질문 ---------- */
+function renderQuestion() {
+  const item = QUESTIONS[current];
+  $('qNum').textContent = `Q${current + 1}.`;
+  $('qText').textContent = item.q;
+  $('progressText').textContent = `${current + 1} / ${QUESTIONS.length}`;
+  $('progressFill').style.width = `${(current / QUESTIONS.length) * 100}%`;
+  $('backBtn').hidden = current === 0;
+
+  const box = $('choices');
+  box.innerHTML = '';
+  item.a.forEach(([text, score], i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'choice';
+    btn.innerHTML = `<span class="key">${KEYS[i]}</span><span></span>`;
+    btn.lastChild.textContent = text;
+    btn.addEventListener('click', () => choose(btn, score));
+    box.appendChild(btn);
+  });
+}
+
+function swapQuestion(next) {
+  const qBox = $('qBox');
+  qBox.classList.add('out');
+  setTimeout(() => {
+    next();
+    qBox.classList.remove('out');
+    $('quiz').querySelector('.quiz-inner').scrollTop = 0;
+    locked = false;
+  }, 300);
+}
+
+function choose(btn, score) {
+  if (locked) return;
+  locked = true;
+  btn.classList.add('picked');
+  picks[current] = score;
+
+  if (current < QUESTIONS.length - 1) {
+    swapQuestion(() => { current++; renderQuestion(); });
+  } else {
+    $('progressFill').style.width = '100%';
+    setTimeout(() => { show('done'); locked = false; }, 350);
+  }
+}
+
+$('backBtn').addEventListener('click', () => {
+  if (locked || current === 0) return;
+  locked = true;
+  swapQuestion(() => { current--; picks.length = current; renderQuestion(); });
+});
+
+/* ---------- 결과 카드 ---------- */
+const totalScore = () => picks.reduce((sum, s) => sum + s, 0);
+const resultFor = (score) => RESULTS.find((r) => score >= r.min && score <= r.max);
+
+function buildCards() {
+  const grid = $('cardGrid');
+  RESULTS.forEach((r, i) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'card';
+    card.style.setProperty('--i', i);
+    card.setAttribute('aria-label', `${r.min}점 ~ ${r.max}점 카드`);
+    card.innerHTML = `<img src="${r.card}" alt=""><span class="fallback">${r.min}점<br>~${r.max}점</span>`;
+    card.querySelector('img').addEventListener('error', () => card.classList.add('no-img'));
+    card.addEventListener('click', () => pickCard(card, r));
+    grid.appendChild(card);
+  });
+}
+
+function pickCard(card, r) {
+  const score = totalScore();
+  if (score < r.min || score > r.max) {
+    card.classList.remove('shake');
+    void card.offsetWidth; // 애니메이션 다시 시작
+    card.classList.add('shake');
+    toast(`내 점수는 ${score}점! ${resultFor(score).min}~${resultFor(score).max}점 카드를 찾아보세요`);
+    return;
+  }
+  openResult(r);
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------- 결과 모달 ---------- */
+function openResult(r) {
+  const box = $('modalBox');
+  const img = $('modalImg');
+  box.style.setProperty('--c', r.c);
+  box.style.setProperty('--m', r.m);
+  $('resultTitle').textContent = r.name;
+  $('resultSub').textContent = r.sub;
+  $('resultBody').innerHTML = r.body;
+
+  box.classList.remove('has-img');
+  img.hidden = true;
+  img.onload = () => { img.hidden = false; box.classList.add('has-img'); };
+  img.onerror = () => { img.hidden = true; box.classList.remove('has-img'); };
+  img.alt = `${r.name} 결과`;
+  img.src = r.img;
+
+  $('toast').classList.remove('show');
+  box.scrollTop = 0;
+  $('modal').classList.add('open');
+  $('closeBtn').focus({ preventScroll: true });
+}
+
+function closeResult() { $('modal').classList.remove('open'); }
+
+$('closeBtn').addEventListener('click', closeResult);
+$('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeResult(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeResult(); });
+
+$('retryBtn').addEventListener('click', () => {
+  closeResult();
+  current = 0;
+  picks = [];
+  renderQuestion();
+  setTimeout(() => show('intro'), 200);
+});
+
+/* ---------- 시작 / 완료 화면 (어디를 눌러도 넘어감) ---------- */
+function onActivate(el, fn) {
+  el.addEventListener('click', fn);
+  el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
+}
+onActivate($('intro'), () => { renderQuestion(); show('quiz'); });
+onActivate($('done'), () => {
+  $('scoreValue').textContent = totalScore();
+  show('cards');
+});
+
+/* ---------- 이미지 미리 불러오기 ---------- */
+[
+  'KakaoTalk_20260923_205858619_01.jpg',
+  'KakaoTalk_20260923_205858619_02.jpg',
+  'KakaoTalk_20260923_205858619_03.jpg',
+  ...RESULTS.flatMap((r) => [r.card, r.img])
+].forEach((src) => { new Image().src = src; });
+
+buildCards();
+renderQuestion();
+</script>
+</body>
+</html>
